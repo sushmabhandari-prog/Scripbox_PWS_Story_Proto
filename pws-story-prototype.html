@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PWS Story Prototype</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0F0F0F;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .phone {
+    width: 390px;
+    height: 780px;
+    background: #141414;
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid #2a2a2a;
+  }
+  .screen { width: 100%; height: 100%; position: relative; overflow: hidden; }
+
+  /* HOME */
+  .home-screen { display: flex; flex-direction: column; height: 100%; padding: 52px 24px 36px; }
+  .home-header { margin-bottom: 32px; }
+  .home-eyebrow { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #888; margin-bottom: 6px; }
+  .home-title { font-size: 22px; font-weight: 600; color: #fff; line-height: 1.2; }
+  .home-sub { font-size: 13px; color: #666; margin-top: 6px; line-height: 1.5; }
+  .version-cards { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+  .vcard { background: #1C1C1C; border-radius: 16px; padding: 20px; cursor: pointer; border: 1px solid #2a2a2a; transition: border-color 0.15s, background 0.15s; display: flex; align-items: center; gap: 16px; }
+  .vcard:hover { background: #222; border-color: #3a3a3a; }
+  .vcard:active { background: #252525; }
+  .vcard-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .vcard-icon.orange { background: rgba(255,107,53,0.15); }
+  .vcard-icon.green { background: rgba(52,199,89,0.12); }
+  .vcard-icon.blue { background: rgba(90,160,255,0.12); }
+  .vcard-text { flex: 1; }
+  .vcard-label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3px; }
+  .vcard-title { font-size: 15px; font-weight: 500; color: #fff; line-height: 1.3; }
+  .vcard-arrow { color: #444; font-size: 18px; }
+  .vcard.orange-active { border-color: rgba(255,107,53,0.4); }
+  .vcard.green-active { border-color: rgba(52,199,89,0.3); }
+  .vcard.blue-active { border-color: rgba(90,160,255,0.3); }
+  .home-footer { font-size: 12px; color: #444; text-align: center; line-height: 1.5; padding-top: 16px; }
+
+  /* STORY */
+  .story-screen { display: none; flex-direction: column; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #141414; }
+  .story-screen.active { display: flex; }
+  .story-progress { display: flex; gap: 5px; padding: 52px 20px 16px; flex-shrink: 0; }
+  .progress-bar { flex: 1; height: 3px; background: #2a2a2a; border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 2px; transition: width 0.3s ease; }
+  .fill-orange { background: #FF6B35; }
+  .fill-green { background: #34C759; }
+  .fill-blue { background: #5AA0FF; }
+  .story-nav { display: flex; align-items: center; justify-content: space-between; padding: 0 20px 12px; flex-shrink: 0; }
+  .story-back-btn { width: 32px; height: 32px; border-radius: 50%; background: #1C1C1C; border: 1px solid #2a2a2a; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #888; font-size: 16px; transition: background 0.15s; }
+  .story-back-btn:hover { background: #252525; }
+  .story-tag { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; font-weight: 500; }
+  .tag-orange { background: rgba(255,107,53,0.15); color: #FF6B35; }
+  .tag-green { background: rgba(52,199,89,0.12); color: #34C759; }
+  .tag-blue { background: rgba(90,160,255,0.12); color: #5AA0FF; }
+  .story-skip { font-size: 13px; color: #555; cursor: pointer; padding: 4px 0; }
+  .story-skip:hover { color: #888; }
+  .story-content { flex: 1; padding: 12px 24px 20px; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+  .slide { display: none; flex-direction: column; justify-content: center; animation: fadeSlide 0.25s ease; height: 100%; }
+  .slide.active { display: flex; }
+  @keyframes fadeSlide { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .slide-number { font-size: 11px; color: #444; letter-spacing: 0.08em; margin-bottom: 20px; text-transform: uppercase; }
+  .slide-visual { margin-bottom: 24px; }
+  .slide-headline { font-size: 20px; font-weight: 600; color: #fff; line-height: 1.25; margin-bottom: 12px; letter-spacing: -0.01em; }
+  .slide-body { font-size: 14px; color: #888; line-height: 1.6; }
+  .slide-body strong { color: #ccc; font-weight: 500; }
+
+  /* Characters */
+  .character-row { display: flex; gap: 12px; margin-bottom: 4px; }
+  .character { flex: 1; background: #1C1C1C; border-radius: 14px; padding: 14px; border: 1px solid #2a2a2a; text-align: center; }
+  .character.dim { opacity: 0.35; }
+  .char-avatar { width: 40px; height: 40px; border-radius: 50%; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; font-style: normal; }
+  .avatar-priya { background: rgba(255,107,53,0.2); color: #FF6B35; }
+  .avatar-rahul { background: rgba(90,160,255,0.15); color: #5AA0FF; }
+  .char-name { font-size: 13px; font-weight: 500; color: #fff; margin-bottom: 3px; }
+  .char-desc { font-size: 11px; color: #666; line-height: 1.4; }
+
+  /* Market card */
+  .market-card { background: #1C1C1C; border-radius: 14px; padding: 16px 18px; border: 1px solid #2a2a2a; margin-bottom: 4px; }
+  .market-card.danger-border { border-color: rgba(255,69,58,0.4); }
+  .market-label { font-size: 11px; color: #666; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .market-num { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 4px; }
+  .market-num.red { color: #FF453A; }
+  .market-num.green { color: #34C759; }
+  .market-desc { font-size: 12px; color: #666; line-height: 1.4; }
+
+  /* Compare */
+  .compare-block { display: flex; gap: 8px; }
+  .compare-card { flex: 1; background: #1C1C1C; border-radius: 14px; padding: 14px; border: 1px solid #2a2a2a; }
+  .compare-card.card-good { border-color: rgba(52,199,89,0.3); }
+  .compare-card.card-bad { border-color: rgba(255,69,58,0.3); }
+  .compare-name { font-size: 11px; color: #666; margin-bottom: 8px; }
+  .compare-val { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  .compare-val.green { color: #34C759; }
+  .compare-val.red { color: #FF453A; }
+  .compare-desc { font-size: 11px; color: #555; line-height: 1.4; }
+
+  /* Allocation bar */
+  .allocation-bar { background: #1C1C1C; border-radius: 14px; padding: 16px 18px; border: 1px solid #2a2a2a; }
+  .alloc-label { font-size: 11px; color: #666; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .alloc-track { height: 12px; background: #2a2a2a; border-radius: 6px; overflow: hidden; margin-bottom: 8px; display: flex; }
+  .alloc-fill { height: 100%; }
+  .alloc-fill.equity { background: #FF6B35; }
+  .alloc-fill.debt { background: #5AA0FF; }
+  .alloc-fill.gold { background: #FFB800; }
+  .alloc-legend { display: flex; gap: 14px; flex-wrap: wrap; }
+  .alloc-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #888; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* Risk matrix */
+  .risk-matrix-wrap { background: #1C1C1C; border-radius: 14px; padding: 16px; border: 1px solid #2a2a2a; }
+  .risk-matrix-title { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+  .risk-matrix-layout { display: flex; gap: 8px; align-items: flex-end; }
+  .risk-matrix-ylabels { display: flex; flex-direction: column-reverse; gap: 6px; padding-bottom: 2px; }
+  .risk-matrix-ylabel { font-size: 10px; color: #555; text-align: right; width: 42px; height: 44px; display: flex; align-items: center; justify-content: flex-end; }
+  .risk-matrix-right { flex: 1; }
+  .risk-matrix-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 44px); gap: 6px; margin-bottom: 6px; }
+  .matrix-cell { border-radius: 10px; background: #252525; border: 1px solid #2a2a2a; display: flex; align-items: center; justify-content: center; }
+  .matrix-cell.active-cell { background: #FF6B35; border-color: #FF6B35; }
+  .matrix-star { color: #fff; font-size: 16px; }
+  .risk-matrix-xlabels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .risk-matrix-xlabel { font-size: 10px; color: #555; text-align: center; }
+  .risk-matrix-xaxis-label { font-size: 11px; color: #555; text-align: center; margin-top: 6px; }
+  .risk-matrix-result { margin-top: 12px; padding-top: 12px; border-top: 1px solid #2a2a2a; font-size: 12px; color: #888; line-height: 1.5; }
+  .risk-matrix-result strong { color: #FF6B35; font-weight: 500; }
+
+  /* CTA / footer */
+  .story-footer { padding: 12px 24px 32px; flex-shrink: 0; }
+  .cta-btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.15s, transform 0.1s; letter-spacing: -0.01em; }
+  .cta-btn:active { transform: scale(0.98); opacity: 0.85; }
+  .btn-orange { background: #FF6B35; color: #fff; }
+  .btn-green { background: #34C759; color: #fff; }
+  .btn-blue { background: #5AA0FF; color: #fff; }
+  .cta-secondary { text-align: center; margin-top: 12px; font-size: 13px; color: #555; cursor: pointer; transition: color 0.15s; }
+  .cta-secondary:hover { color: #888; }
+
+  /* Tap zones */
+  .tap-areas { position: absolute; top: 0; left: 0; right: 0; bottom: 80px; display: flex; z-index: 10; }
+  .tap-prev { width: 35%; cursor: pointer; }
+  .tap-next { width: 65%; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="screen">
+
+    <!-- HOME -->
+    <div class="home-screen" id="home">
+      <div class="home-header">
+        <div class="home-eyebrow">PWS Story — Prototype</div>
+        <div class="home-title">What does your portfolio actually know about you?</div>
+        <div class="home-sub">Three versions of the same story, depending on where a user is in their setup.</div>
+      </div>
+      <div class="version-cards">
+        <div class="vcard orange-active" onclick="openStory('riskprofile')">
+          <div class="vcard-icon orange">👤</div>
+          <div class="vcard-text">
+            <div class="vcard-label">Version A</div>
+            <div class="vcard-title">Risk profile not taken</div>
+          </div>
+          <div class="vcard-arrow">›</div>
+        </div>
+        <div class="vcard green-active" onclick="openStory('strategy')">
+          <div class="vcard-icon green">📊</div>
+          <div class="vcard-text">
+            <div class="vcard-label">Version B</div>
+            <div class="vcard-title">Growth strategy not selected</div>
+          </div>
+          <div class="vcard-arrow">›</div>
+        </div>
+        <div class="vcard blue-active" onclick="openStory('ab1')">
+          <div class="vcard-icon blue">⚖️</div>
+          <div class="vcard-text">
+            <div class="vcard-label">Version C</div>
+            <div class="vcard-title">Auto balance not turned on</div>
+          </div>
+          <div class="vcard-arrow">›</div>
+        </div>
+      </div>
+      <div class="home-footer">Tap a version to preview the story it triggers</div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- STORY A: Risk profile not taken (5 slides) -->
+    <!-- Shared: 0,1 | Unique: 2,3,4               -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="story-screen" id="story-riskprofile">
+      <div class="story-progress">
+        <div class="progress-bar"><div class="progress-fill fill-orange" id="prog-riskprofile-0" style="width:100%"></div></div>
+        <div class="progress-bar"><div class="progress-fill fill-orange" id="prog-riskprofile-1" style="width:0%"></div></div>
+        <div class="progress-bar"><div class="progress-fill fill-orange" id="prog-riskprofile-2" style="width:0%"></div></div>
+        <div class="progress-bar"><div class="progress-fill fill-orange" id="prog-riskprofile-3" style="width:0%"></div></div>
+        <div class="progress-bar"><div class="progress-fill fill-orange" id="prog-riskprofile-4" style="width:0%"></div></div>
+      </div>
+      <div class="story-nav">
+        <div class="story-back-btn" onclick="closeStory()">‹</div>
+        <div class="story-tag tag-orange">Risk profile</div>
+        <div class="story-skip" onclick="skipToEnd('riskprofile',4)">Skip</div>
+      </div>
+      <div class="story-content">
+
+        <!-- SHARED SLIDE 0 -->
+        <div class="slide active" id="riskprofile-slide-0">
+          <div class="slide-number">01 of 05</div>
+          <div class="slide-visual">
+            <div class="character-row">
+              <div class="character">
+                <div class="char-avatar avatar-priya">P</div>
+                <div class="char-name">Priya</div>
+                <div class="char-desc">Same app, same SIPs</div>
+              </div>
+              <div class="character">
+                <div class="char-avatar avatar-rahul">R</div>
+                <div class="char-name">Rahul</div>
+                <div class="char-desc">Same app, same SIPs</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-headline">Two investors. Same starting point.</div>
+          <div class="slide-body">Priya and Rahul both started investing around the same time. Same salary. Same monthly SIP. Same app.</div>
+        </div>
+
+        <!-- SHARED SLIDE 1 -->
+        <div class="slide" id="riskprofile-slide-1">
+          <div class="slide-number">02 of 05</div>
+          <div class="slide-visual">
+            <div class="market-card danger-border">
+              <div class="market-label">Sensex, March 2020</div>
+              <div class="market-num red">−35%</div>
+              <div class="market-desc">Markets fell sharply within weeks. No one saw it coming.</div>
+            </div>
+          </div>
+          <div class="slide-headline">Then the market crashed.</div>
+          <div class="slide-body">2020 hit hard. Markets fell 35% in a matter of weeks. Both Priya and Rahul watched their portfolios drop in real time.</div>
+        </div>
+
+        <!-- UNIQUE A: slide 2 -->
+        <div class="slide" id="riskprofile-slide-2">
+          <div class="slide-number">03 of 05</div>
+          <div class="slide-visual">
+            <div class="compare-block">
+              <div class="compare-card card-bad">
+                <div class="compare-name">Rahul's drop</div>
+                <div class="compare-val red">−29%</div>
+                <div class="compare-desc">90% equity. Didn't know it.</div>
+              </div>
+              <div class="compare-card card-good">
+                <div class="compare-name">Priya's drop</div>
+                <div class="compare-val green">−18%</div>
+                <div class="compare-desc">70/30 split. Chose it.</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-headline">They didn't fall the same way.</div>
+          <div class="slide-body">Rahul's portfolio was sitting at 90% equity — <strong>he just didn't know it.</strong> Priya had set her risk profile. She knew she was at 70% equity and had chosen that.</div>
+        </div>
+
+        <!-- UNIQUE A: slide 3 -->
+        <div class="slide" id="riskprofile-slide-3">
+          <div class="slide-number">04 of 05</div>
+          <div class="slide-visual">
+            <div class="character-row">
+              <div class="character dim">
+                <div class="char-avatar avatar-rahul">R</div>
+                <div class="char-name">Rahul</div>
+                <div class="char-desc">Paused SIPs. Still recovering.</div>
+              </div>
+              <div class="character">
+                <div class="char-avatar avatar-priya">P</div>
+                <div class="char-name">Priya</div>
+                <div class="char-desc">Stayed invested. Recovered fully.</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-headline">The loss that surprised him hit harder.</div>
+          <div class="slide-body">Rahul panicked and paused his SIPs. Priya didn't — she'd already planned for this level of risk. <strong>Three years later, she recovered fully. Rahul is still catching up.</strong></div>
+        </div>
+
+        <!-- UNIQUE A: slide 4 (CTA) -->
+        <div class="slide" id="riskprofile-slide-4">
+          <div class="slide-number">05 of 05</div>
+          <div class="slide-visual">
+            <div class="allocation-bar">
+              <div class="alloc-label">Your split right now</div>
+              <div class="alloc-track">
+                <div class="alloc-fill equity" style="width:85%"></div>
+                <div class="alloc-fill debt" style="width:15%"></div>
+              </div>
+              <div class="alloc-legend">
+                <div class="alloc-legend-item"><div class="legend-dot" style="background:#FF6B35"></div>Equity 85%</div>
+                <div class="alloc-legend-item"><div class="legend-dot" style="background:#5AA0FF"></div>Debt 15%</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-headline">Do you know what your split looks like?</div>
+          <div class="slide-body">The difference wasn't luck. It was knowing how much risk she could handle. <strong>Your risk profile takes 2 minutes</strong> and tells us how to invest your money — for you, not a generic investor.</div>
+        </div>
+
+      </div>
+      <div class="story-footer" id="footer-riskprofile" style="display:none">
+        <button class="cta-btn btn-orange">Take risk assessment</button>
+        <div class="cta-secondary" onclick="closeStory()">← Back to all versions</div>
+      </div>
+      <div class="tap-areas" id="tap-riskprofile">
+        <div class="tap-prev" onclick="prevSlide('riskprofile')"></div>
+        <div class="tap-next" onclick="nextSlide('riskprofile',4)"></div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- STORY B: Growth strategy not selected (5 slides) -->
+    <!-- Standalone — no shared slides with A or C        -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="story-screen" id="story-strategy">
+      <div class="story-progress">
+        <div class="progress-bar"><div class="progress-fill fill-green" id="prog-strategy-0" style="width:100%"></div></div>
+        <div class="progress-bar"><div class="progress-fill fill-green" id="prog-strategy-1" style="width:0%"></div></div>
+        <div class="progress-bar"><div class="progress-fill fill-green" id="prog-strategy-2" style="width:0%"></div></div>
+        <div class="progress-bar"><div class="progress-fill fill-green" id="prog-strategy-3" style="width:0%"></div></div>
+        <div class="progress-bar"><div class="progress-fill fill-green" id="prog-strategy-4" style="width:0%"></div></div>
+      </div>
+      <div class="story-nav">
+        <div class="story-back-btn" onclick="closeStory()">‹</div>
+        <div class="story-tag tag-green">Growth strategy</div>
+        <div class="story-skip" onclick="skipToEnd('strategy',4)">Skip</div>
+      </div>
+      <div class="story-content">
+
+        <!-- B: slide 0 — same starting point -->
+        <div class="slide active" id="strategy-slide-0">
+          <div class="slide-number">01 of 05</div>
+          <div class="slide-visual">
+            <div class="character-row">
+              <div class="character">
+                <div class="char-avatar avatar-priya">P</div>
+                <div class="char-name">Priya</div>
+                <div class="char-desc">Same salary, same SIPs, same risk appetite</div>
+              </div>
+              <div class="character">
+                <div class="char-avatar avatar-rahul">R</div>
+                <div class="char-name">Rahul</div>
+                <div class="char-desc">Same salary, same SIPs, same risk appetite</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-headline">Two investors who look identical on paper.</div>
+          <div class="slide-body">Priya and Rahul. Same salary. Same monthly SIPs. Same risk appetite. There was nothing to tell them apart — except one decision they made differently.</div>
+        </div>
+
+        <!-- B: slide 1 — the one difference -->
+        <div class="slide" id="strategy-slide-1">
+          <div class="slide-number">02 of 05</div>
+          <div class="slide-visual">
+            <div class="compare-block">
+              <div class="compare-card card-bad">
+                <div class="compare-name">Rahul — no strategy set</div>
+                <div class="compare-val red" style="font-size:15px;margin-bottom:6px">Default strategy</div>
+                <div class="alloc-track" style="margin-bottom:6px">
+                  <div class="alloc-fill debt" style="width:60%"></div>
+                  <div class="alloc-fill equity" style="width:40%"></div>
+                </div>
+                <div class="compare-desc">60% debt · 40% equity<br>Built for someone cautious.</div>
+              </div>
+              <div class="compare-card card-good">
+                <div class="compare-name">Priya — Growth strategy</div>
+                <div class="compare-val green" style="font-size:15px;margin-bottom:6px">Growth strategy</div>
+                <div class="alloc-track" style="margin-bottom:6px">
+                  <div class="alloc-fill equity" style="width:75%"></div>
+                  <div class="alloc-fill debt" style="width:25%"></div>
+                </div>
+                <div class="compare-desc">75% equity · 25% debt<br>Matched her risk appetite.</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-headline">One thing set them apart.</div>
+          <div class="slide-body">Rahul never picked a strategy. His money went into a default — mostly debt, built for someone cautious. <strong>Both could handle high risk. Only Priya's money reflected that.</strong></div>
+        </div>
+
+        <!-- B: slide 2 — what happened -->
+        <div class="slide" id="strategy-slide-2">
+          <div class="slide-number">03 of 05</div>
+          <div class="slide-visual">
+            <div class="compare-block">
+              <div class="compare-card card-bad">
+                <div class="compare-name">Rahul — after crash + recovery</div>
+                <div class="compare-val red">+9%</div>
+                <div class="compare-desc">Portfolio grew slowly. Debt doesn't rally with markets.</div>
+              </div>
+              <div class="compare-card card-good">
+                <div class="compare-name">Priya — after crash + recovery</div>
+                <div class="compare-val green">+24%</div>
+                <div class="compare-desc">Captured most of the upside. Equity led the recovery.</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-headline">When markets crashed and recovered, Priya gained far more.</div>
+          <div class="slide-body">Rahul's portfolio grew too — but much slower. His money was in the wrong place for his risk appetite. <strong>Same market. Very different result.</strong></div>
+        </div>
+
+        <!-- B: slide 3 — why it happened -->
+        <div class="slide" id="strategy-slide-3">
+          <div class="slide-number">04 of 05</div>
+          <div class="slide-visual">
+            <div class="allocation-bar">
+              <div class="alloc-label">Why Priya gained more</div>
+              <div class="alloc-track" style="margin-bottom:6px">
+                <div class="alloc-fill equity" style="width:75%"></div>
+                <div class="alloc-fill debt" style="width:25%"></div>
+              </div>
+              <div style="font-size:12px;color:#34C759;margin-bottom:12px;">75% equity — grew with the market rally</div>
+              <div class="alloc-label">Why Rahul gained less</div>
+              <div class="alloc-track" style="margin-bottom:6px">
+                <div class="alloc-fill debt" style="width:60%"></div>
+                <div class="alloc-fill equity" style="width:40%"></div>
+              </div>
+              <div style="font-size:12px;color:#FF453A;">60% debt — safe, but doesn't grow when markets rally</div>
+            </div>
+          </div>
+          <div class="slide-headline">Equity grows when markets go up. Debt doesn't.</div>
+          <div class="slide-body">Priya had more equity because her strategy matched her risk appetite. Rahul's default kept most of his money in debt. <strong>It wasn't built for someone who could handle high risk.</strong></div>
+        </div>
+
+        <!-- B: slide 4 (CTA) — risk matrix mirror -->
+        <div class="slide" id="strategy-slide-4">
+          <div class="slide-number">05 of 05</div>
+          <div class="slide-visual">
+            <div class="risk-matrix-wrap">
+              <div class="risk-matrix-title">Your risk profile</div>
+              <div class="risk-matrix-layout">
+                <div class="risk-matrix-ylabels">
+                  <div class="risk-matrix-ylabel">Low</div>
+                  <div class="risk-matrix-ylabel">Medium</div>
+                  <div class="risk-matrix-ylabel">High</div>
+                </div>
+                <div class="risk-matrix-right">
+                  <div class="risk-matrix-grid">
+                    <div class="matrix-cell"></div>
+                    <div class="matrix-cell active-cell"><span class="matrix-star">✦</span></div>
+                    <div class="matrix-cell"></div>
+                    <div class="matrix-cell"></div>
+                    <div class="matrix-cell"></div>
+                    <div class="matrix-cell"></div>
+                    <div class="matrix-cell"></div>
+                    <div class="matrix-cell"></div>
+                    <div class="matrix-cell"></div>
+                  </div>
+                  <div class="risk-matrix-xlabels">
+                    <div class="risk-matrix-xlabel">Low</div>
+                    <div class="risk-matrix-xlabel">Medium</div>
+                    <div class="risk-matrix-xlabel">High</div>
+                  </div>
+                  <div class="risk-matrix-xaxis-label">Risk ability →</div>
+                </div>
+              </div>
+              <div class="risk-matrix-result">You are: <strong>High willingness, Medium ability.</strong> This maps to a Growth strategy — but your money isn't invested that way yet.</div>
+            </div>
+          </div>
+          <div class="slide-headline">Your risk profile is ready. Now pick your strategy.</div>
+          <div class="slide-body">You've told us what kind of investor you are. <strong>One more step</strong> makes sure your money is actually invested to match it.</div>
+        </div>
+
+      </div>
+      <div class="story-footer" id="footer-strategy" style="display:none">
+        <button class="cta-btn btn-green">Get my strategy</button>
+        <div class="cta-secondary" onclick="closeStory()">← Back to all versions</div>
+      </div>
+      <div class="tap-areas" id="tap-strategy">
+        <div class="tap-prev" onclick="prevSlide('strategy')"></div>
+        <div class="tap-next" onclick="nextSlide('strategy',4)"></div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!-- STORY C Option 1: Auto balance — two "why" slides  -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <div class="story-screen" id="story-ab1">
+      <div class="story-progress">
+        <div class="progress-bar"><div class="progress-fill fill-blue" id="prog-ab1-0" style="width:100%"></div></div>
+        <div class="progress-bar"><div class="progress-fill fill-blue" id="prog-ab1-1" style="width:0%"></div></div>
+        <div class="progress-bar"><div class="progress-fill fill-blue" id="prog-ab1-2" style="width:0%"></div></div>
+        <div class="progress-bar"><div class="progress-fill fill-blue" id="prog-ab1-3" style="width:0%"></div></div>
+        <div class="progress-bar"><div class="progress-fill fill-blue" id="prog-ab1-4" style="width:0%"></div></div>
+        <div class="progress-bar"><div class="progress-fill fill-blue" id="prog-ab1-5" style="width:0%"></div></div>
+        <div class="progress-bar"><div class="progress-fill fill-blue" id="prog-ab1-6" style="width:0%"></div></div>
+      </div>
+      <div class="story-nav">
+        <div class="story-back-btn" onclick="closeStory()">‹</div>
+        <div class="story-tag tag-blue">Auto balance</div>
+        <div class="story-skip" onclick="skipToEnd('ab1',6)">Skip</div>
+      </div>
+      <div class="story-content">
+
+        <div class="slide active" id="ab1-slide-0">
+          <div class="slide-number">01 of 07</div>
+          <div class="slide-visual">
+            <div class="character-row">
+              <div class="character">
+                <div class="char-avatar avatar-priya">P</div>
+                <div class="char-name">Priya</div>
+                <div class="char-desc">Same salary, same SIPs, same strategy</div>
+              </div>
+              <div class="character">
+                <div class="char-avatar avatar-rahul">R</div>
+                <div class="char-name">Rahul</div>
+                <div class="char-desc">Same salary, same SIPs, same strategy</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-headline">Two investors who look identical on paper.</div>
+          <div class="slide-body">Priya and Rahul. Same salary. Same monthly SIPs. Same growth strategy. There was nothing to tell them apart.</div>
+        </div>
+
+        <div class="slide" id="ab1-slide-1">
+          <div class="slide-number">02 of 07</div>
+          <div class="slide-visual">
+            <div class="allocation-bar">
+              <div class="alloc-label">Both portfolios — same target</div>
+              <div class="alloc-track">
+                <div class="alloc-fill equity" style="width:70%"></div>
+                <div class="alloc-fill debt" style="width:20%"></div>
+                <div class="alloc-fill gold" style="width:10%"></div>
+              </div>
+              <div class="alloc-legend">
+                <div class="alloc-legend-item"><div class="legend-dot" style="background:#FF6B35"></div>Equity 70%</div>
+                <div class="alloc-legend-item"><div class="legend-dot" style="background:#5AA0FF"></div>Debt 20%</div>
+                <div class="alloc-legend-item"><div class="legend-dot" style="background:#FFB800"></div>Gold 10%</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-headline">Same strategy. Same target split.</div>
+          <div class="slide-body">Both were invested the same way — 70% equity, 20% debt, 10% gold. Both aiming for the same thing.</div>
+        </div>
+
+        <div class="slide" id="ab1-slide-2">
+          <div class="slide-number">03 of 07</div>
+          <div class="slide-visual">
+            <div class="compare-block">
+              <div class="compare-card card-bad">
+                <div class="compare-name">Rahul — 2 years later</div>
+                <div class="compare-val red">57% equity</div>
+                <div class="compare-desc">Drifted 13% below his 70% target.</div>
+              </div>
+              <div class="compare-card card-good">
+                <div class="compare-name">Priya — 2 years later</div>
+                <div class="compare-val green">69% equity</div>
+                <div class="compare-desc">Within 1% of her 70% target.</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-headline">Two years later, they were in very different places.</div>
+          <div class="slide-body">Markets moved. Both portfolios drifted. But Priya's stayed close to her target. Rahul's fell far below his. Same SIPs, same strategy — <strong>very different result.</strong></div>
+        </div>
+
+        <!-- WHY: slide 4a — Priya's side -->
+        <div class="slide" id="ab1-slide-3">
+          <div class="slide-number">04 of 07</div>
+          <div class="slide-visual">
+            <div class="allocation-bar">
+              <div class="alloc-label">When markets fell</div>
+              <div class="alloc-track" style="margin-bottom:5px">
+                <div class="alloc-fill equity" style="width:63%"></div>
+                <div class="alloc-fill debt" style="width:27%"></div>
+                <div class="alloc-fill gold" style="width:10%"></div>
+              </div>
+              <div style="font-size:11px;color:#FF453A;margin-bottom:14px;">Equity lost more value than debt. Split shifted.</div>
+              <div class="alloc-label">Her next SIP went into equity</div>
+              <div class="alloc-track" style="margin-bottom:5px">
+                <div class="alloc-fill equity" style="width:69%"></div>
+                <div class="alloc-fill debt" style="width:21%"></div>
+                <div class="alloc-fill gold" style="width:10%"></div>
+              </div>
+              <div style="font-size:11px;color:#34C759;">Auto balance sent it there. Split back near target.</div>
+            </div>
+          </div>
+          <div class="slide-headline">When markets fell, Priya's split shifted. Auto balance corrected it.</div>
+          <div class="slide-body">Equity lost more value than debt — so her 70-30 split quietly became something else. But her next SIP went into equity. Auto balance spotted the gap and sent it there. <strong>Her split stayed close to what she'd chosen.</strong></div>
+        </div>
+
+        <!-- WHY: slide 4b — Rahul's side -->
+        <div class="slide" id="ab1-slide-4">
+          <div class="slide-number">05 of 07</div>
+          <div class="slide-visual">
+            <div class="allocation-bar">
+              <div class="alloc-label">When markets fell</div>
+              <div class="alloc-track" style="margin-bottom:5px">
+                <div class="alloc-fill equity" style="width:63%"></div>
+                <div class="alloc-fill debt" style="width:27%"></div>
+                <div class="alloc-fill gold" style="width:10%"></div>
+              </div>
+              <div style="font-size:11px;color:#FF453A;margin-bottom:14px;">Equity lost more value than debt. Split shifted.</div>
+              <div class="alloc-label">His SIPs kept going in as usual</div>
+              <div class="alloc-track" style="margin-bottom:5px">
+                <div class="alloc-fill equity" style="width:57%"></div>
+                <div class="alloc-fill debt" style="width:33%"></div>
+                <div class="alloc-fill gold" style="width:10%"></div>
+              </div>
+              <div style="font-size:11px;color:#FF453A;">No correction. Drift continued.</div>
+            </div>
+          </div>
+          <div class="slide-headline">The same thing happened to Rahul. Nothing corrected it.</div>
+          <div class="slide-body">His equity also lost value. His split shifted the same way. But without auto balance, his SIPs kept going in as usual — <strong>no one was watching the drift.</strong> His split kept moving further from his target.</div>
+        </div>
+
+        <div class="slide" id="ab1-slide-5">
+          <div class="slide-number">06 of 07</div>
+          <div class="slide-visual">
+            <div class="character-row">
+              <div class="character dim">
+                <div class="char-avatar avatar-rahul">R</div>
+                <div class="char-name">Rahul</div>
+                <div class="char-desc">57% equity at recovery. Missed most of the upside.</div>
+              </div>
+              <div class="character">
+                <div class="char-avatar avatar-priya">P</div>
+                <div class="char-name">Priya</div>
+                <div class="char-desc">Near 70% equity. Captured the rally.</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-headline">When markets recovered, Priya gained more.</div>
+          <div class="slide-body">Her equity was close to target when markets bounced. <strong>Rahul had less equity than he'd planned for at the exact moment he needed it.</strong></div>
+        </div>
+
+        <div class="slide" id="ab1-slide-6">
+          <div class="slide-number">07 of 07</div>
+          <div class="slide-visual">
+            <div class="allocation-bar">
+              <div class="alloc-label">Your allocation today vs your target</div>
+              <div class="alloc-track" style="margin-bottom:5px">
+                <div class="alloc-fill equity" style="width:62%"></div>
+                <div class="alloc-fill debt" style="width:28%"></div>
+                <div class="alloc-fill gold" style="width:10%"></div>
+              </div>
+              <div style="font-size:11px;color:#FF453A;margin-bottom:8px;">Equity has drifted below your 70% target</div>
+              <div class="alloc-legend">
+                <div class="alloc-legend-item"><div class="legend-dot" style="background:#FF6B35"></div>Equity 62% (target 70%)</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-headline">Your allocation has drifted too.</div>
+          <div class="slide-body">Auto balance makes sure every new investment goes where it's needed most — keeping you close to your target, <strong>automatically, every SIP.</strong></div>
+        </div>
+
+      </div>
+      <div class="story-footer" id="footer-ab1" style="display:none">
+        <button class="cta-btn btn-blue">Turn on auto balance</button>
+        <div class="cta-secondary" onclick="closeStory()">← Back to all versions</div>
+      </div>
+      <div class="tap-areas" id="tap-ab1">
+        <div class="tap-prev" onclick="prevSlide('ab1')"></div>
+        <div class="tap-next" onclick="nextSlide('ab1',6)"></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- STORY C Option 2: Auto balance — one side-by-side why -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div class="story-screen" id="story-ab2">
+      <div class="story-progress">
+        <div class="progress-bar"><div class="progress-fill fill-blue" id="prog-ab2-0" style="width:100%"></div></div>
+        <div class="progress-bar"><div class="progress-fill fill-blue" id="prog-ab2-1" style="width:0%"></div></div>
+        <div class="progress-bar"><div class="progress-fill fill-blue" id="prog-ab2-2" style="width:0%"></div></div>
+        <div class="progress-bar"><div class="progress-fill fill-blue" id="prog-ab2-3" style="width:0%"></div></div>
+        <div class="progress-bar"><div class="progress-fill fill-blue" id="prog-ab2-4" style="width:0%"></div></div>
+        <div class="progress-bar"><div class="progress-fill fill-blue" id="prog-ab2-5" style="width:0%"></div></div>
+      </div>
+      <div class="story-nav">
+        <div class="story-back-btn" onclick="closeStory()">‹</div>
+        <div class="story-tag tag-blue">Auto balance · C2</div>
+        <div class="story-skip" onclick="skipToEnd('ab2',5)">Skip</div>
+      </div>
+      <div class="story-content">
+
+        <div class="slide active" id="ab2-slide-0">
+          <div class="slide-number">01 of 06</div>
+          <div class="slide-visual">
+            <div class="character-row">
+              <div class="character">
+                <div class="char-avatar avatar-priya">P</div>
+                <div class="char-name">Priya</div>
+                <div class="char-desc">Same salary, same SIPs, same strategy</div>
+              </div>
+              <div class="character">
+                <div class="char-avatar avatar-rahul">R</div>
+                <div class="char-name">Rahul</div>
+                <div class="char-desc">Same salary, same SIPs, same strategy</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-headline">Two investors who look identical on paper.</div>
+          <div class="slide-body">Priya and Rahul. Same salary. Same monthly SIPs. Same growth strategy. There was nothing to tell them apart.</div>
+        </div>
+
+        <div class="slide" id="ab2-slide-1">
+          <div class="slide-number">02 of 06</div>
+          <div class="slide-visual">
+            <div class="allocation-bar">
+              <div class="alloc-label">Both portfolios — same target</div>
+              <div class="alloc-track">
+                <div class="alloc-fill equity" style="width:70%"></div>
+                <div class="alloc-fill debt" style="width:20%"></div>
+                <div class="alloc-fill gold" style="width:10%"></div>
+              </div>
+              <div class="alloc-legend">
+                <div class="alloc-legend-item"><div class="legend-dot" style="background:#FF6B35"></div>Equity 70%</div>
+                <div class="alloc-legend-item"><div class="legend-dot" style="background:#5AA0FF"></div>Debt 20%</div>
+                <div class="alloc-legend-item"><div class="legend-dot" style="background:#FFB800"></div>Gold 10%</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-headline">Same strategy. Same target split.</div>
+          <div class="slide-body">Both were invested the same way — 70% equity, 20% debt, 10% gold. Both aiming for the same thing.</div>
+        </div>
+
+        <div class="slide" id="ab2-slide-2">
+          <div class="slide-number">03 of 06</div>
+          <div class="slide-visual">
+            <div class="compare-block">
+              <div class="compare-card card-bad">
+                <div class="compare-name">Rahul — 2 years later</div>
+                <div class="compare-val red">57% equity</div>
+                <div class="compare-desc">Drifted 13% below his 70% target.</div>
+              </div>
+              <div class="compare-card card-good">
+                <div class="compare-name">Priya — 2 years later</div>
+                <div class="compare-val green">69% equity</div>
+                <div class="compare-desc">Within 1% of her 70% target.</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-headline">Two years later, they were in very different places.</div>
+          <div class="slide-body">Markets moved. Both portfolios drifted. But Priya's stayed close to her target. Rahul's fell far below his. Same SIPs, same strategy — <strong>very different result.</strong></div>
+        </div>
+
+        <!-- WHY: single side-by-side slide -->
+        <div class="slide" id="ab2-slide-3">
+          <div class="slide-number">04 of 06</div>
+          <div class="slide-visual">
+            <div class="compare-block">
+              <div class="compare-card card-good">
+                <div class="compare-name">Priya's SIP</div>
+                <div class="alloc-track" style="margin-bottom:5px">
+                  <div class="alloc-fill equity" style="width:100%"></div>
+                </div>
+                <div style="font-size:10px;color:#34C759;margin-bottom:8px;">100% → equity</div>
+                <div class="compare-desc">Auto balance sent it where equity had fallen. Bought more at a discount.</div>
+              </div>
+              <div class="compare-card card-bad">
+                <div class="compare-name">Rahul's SIP</div>
+                <div class="alloc-track" style="margin-bottom:5px">
+                  <div class="alloc-fill equity" style="width:70%"></div>
+                  <div class="alloc-fill debt" style="width:20%"></div>
+                  <div class="alloc-fill gold" style="width:10%"></div>
+                </div>
+                <div style="font-size:10px;color:#FF453A;margin-bottom:8px;">Split as usual — drift ignored</div>
+                <div class="compare-desc">No correction. Equity kept falling further from target.</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-headline">Here's why.</div>
+          <div class="slide-body">Priya had auto balance on. Each SIP went into the asset class that had fallen behind. <strong>Rahul's split the same way every month</strong> — no one was watching the drift.</div>
+        </div>
+
+        <div class="slide" id="ab2-slide-4">
+          <div class="slide-number">05 of 06</div>
+          <div class="slide-visual">
+            <div class="character-row">
+              <div class="character dim">
+                <div class="char-avatar avatar-rahul">R</div>
+                <div class="char-name">Rahul</div>
+                <div class="char-desc">57% equity at recovery. Missed most of the upside.</div>
+              </div>
+              <div class="character">
+                <div class="char-avatar avatar-priya">P</div>
+                <div class="char-name">Priya</div>
+                <div class="char-desc">Near 70% equity. Captured the rally.</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-headline">When markets recovered, Priya gained more.</div>
+          <div class="slide-body">Her equity was close to target when markets bounced. <strong>Rahul had less equity than he'd planned for at the exact moment he needed it.</strong></div>
+        </div>
+
+        <div class="slide" id="ab2-slide-5">
+          <div class="slide-number">06 of 06</div>
+          <div class="slide-visual">
+            <div class="allocation-bar">
+              <div class="alloc-label">Your allocation today vs your target</div>
+              <div class="alloc-track" style="margin-bottom:5px">
+                <div class="alloc-fill equity" style="width:62%"></div>
+                <div class="alloc-fill debt" style="width:28%"></div>
+                <div class="alloc-fill gold" style="width:10%"></div>
+              </div>
+              <div style="font-size:11px;color:#FF453A;margin-bottom:8px;">Equity has drifted below your 70% target</div>
+              <div class="alloc-legend">
+                <div class="alloc-legend-item"><div class="legend-dot" style="background:#FF6B35"></div>Equity 62% (target 70%)</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-headline">Your allocation has drifted too.</div>
+          <div class="slide-body">Auto balance makes sure every new investment goes where it's needed most — keeping you close to your target, <strong>automatically, every SIP.</strong></div>
+        </div>
+
+      </div>
+      <div class="story-footer" id="footer-ab2" style="display:none">
+        <button class="cta-btn btn-blue">Turn on auto balance</button>
+        <div class="cta-secondary" onclick="closeStory()">← Back to all versions</div>
+      </div>
+      <div class="tap-areas" id="tap-ab2">
+        <div class="tap-prev" onclick="prevSlide('ab2')"></div>
+        <div class="tap-next" onclick="nextSlide('ab2',5)"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const state = {};
+
+function openStory(id) {
+  document.getElementById('home').style.display = 'none';
+  document.getElementById('story-' + id).classList.add('active');
+  state[id] = { current: 0 };
+  updateProgress(id);
+}
+
+function closeStory() {
+  document.querySelectorAll('.story-screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('home').style.display = 'flex';
+}
+
+function nextSlide(id, total) {
+  const s = state[id];
+  if (s.current < total) setSlide(id, s.current + 1, total);
+}
+
+function prevSlide(id) {
+  const s = state[id];
+  if (s.current > 0) setSlide(id, s.current - 1, 999);
+  else closeStory();
+}
+
+function skipToEnd(id, total) { setSlide(id, total, total); }
+
+function setSlide(id, index, total) {
+  const s = state[id];
+  document.getElementById(id + '-slide-' + s.current).classList.remove('active');
+  s.current = index;
+  document.getElementById(id + '-slide-' + index).classList.add('active');
+  updateProgress(id);
+  const atEnd = index === total;
+  document.getElementById('footer-' + id).style.display = atEnd ? 'block' : 'none';
+  document.getElementById('tap-' + id).style.display = atEnd ? 'none' : 'flex';
+}
+
+function updateProgress(id) {
+  const cur = state[id].current;
+  document.querySelectorAll('[id^="prog-' + id + '-"]').forEach((bar, i) => {
+    bar.style.width = i <= cur ? '100%' : '0%';
+  });
+}
+</script>
+</body>
+</html>
